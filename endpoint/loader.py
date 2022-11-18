@@ -1,15 +1,16 @@
 import os
 import pandas as pd
 import numpy as np
-from sqlalchemy import create_engine
+from helper import get_engine
 
-#a = loader.Loader('/Users/nsoria/Documents/github-nsoria/g-data-exercise/endpoint/test/jobs.csv')
+CHUNK_SIZE = 1000
+
 class Loader:
     def __init__(self, path):
         self.path = path
         assert os.path.split(self.path)[1].split(".")[0] in ('hired_employees', 'jobs', 'departments'), "Filename unexpected."
         self.entity = os.path.split(self.path)[1].split(".")[0]
-        self.db = create_engine('postgresql://globant:globant@postgres/data')
+        self.db = get_engine()
         self.schema = self.__set_required_schema()
 
     def __set_required_schema(self):
@@ -43,7 +44,7 @@ class Loader:
 
     def process_data(self):
         self.status = 0
-        with pd.read_csv(self.path, header=None, chunksize=1) as reader:
+        with pd.read_csv(self.path, header=None, chunksize=CHUNK_SIZE) as reader:
             reader
             for chunk in reader:
                 try:

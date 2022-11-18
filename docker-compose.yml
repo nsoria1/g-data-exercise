@@ -29,3 +29,17 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  backup_restore:
+    container_name: backup_restore
+    build:
+      context: ./feature
+      dockerfile: Dockerfile
+    image: backup_restore/latest
+    ports:
+      - 5002:6000
+    volumes:
+        - ./feature/backup:/feature/backup/
+        - ./feature/schema:/feature/schema/
+    depends_on:
+      postgres:
+        condition: service_healthy

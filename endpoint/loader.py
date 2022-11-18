@@ -9,7 +9,7 @@ class Loader:
         self.path = path
         assert os.path.split(self.path)[1].split(".")[0] in ('hired_employees', 'jobs', 'departments'), "Filename unexpected."
         self.entity = os.path.split(self.path)[1].split(".")[0]
-        self.db = create_engine('postgres://globant:globant@localhost/data')
+        self.db = create_engine('postgresql://globant:globant@postgres/data')
         self.schema = self.__set_required_schema()
 
     def __set_required_schema(self):
@@ -25,9 +25,6 @@ class Loader:
         df = df.astype(self.schema)
         df = df.replace({'nan': np.nan})
         return df
-
-    def process_data2(self):
-        return pd.read_csv(self.path, header=None)
 
     @staticmethod
     def __run_data_validations(df: pd.DataFrame):

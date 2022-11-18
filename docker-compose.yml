@@ -13,3 +13,19 @@ services:
     restart: always
     volumes: 
       - ./infra/init.sh:/docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "data", "-U", "globant" ]
+      interval : 5s
+      timeout : 5s
+      retries : 5
+  endpoint:
+    container_name: endpoint
+    build:
+      context: ./endpoint
+      dockerfile: Dockerfile
+    image: endpoint/latest
+    ports:
+      - 5001:5000
+    depends_on:
+      postgres:
+        condition: service_healthy

@@ -1,0 +1,68 @@
+version: '3.5'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres
+    environment:
+      POSTGRES_USER: globant
+      POSTGRES_PASSWORD: globant
+      POSTGRES_DB: data
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes: 
+      - ./infra/init.sh:/docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "data", "-U", "globant" ]
+      interval : 5s
+      timeout : 5s
+      retries : 5
+  endpoint:
+    container_name: endpoint
+    build:
+      context: ./endpoint
+      dockerfile: Dockerfile
+    image: endpoint/latest
+    ports:
+      - 5001:5000
+    depends_on:
+      postgres:
+        condition: service_healthy
+  backup_restore:
+    container_name: backup_restore
+    build:
+      context: ./feature
+      dockerfile: Dockerfile
+    image: backup_restore/latest
+    ports:
+      - 5002:6000
+    volumes:
+        - ./feature/backup:/feature/backup/
+        - ./feature/schema:/feature/schema/
+    depends_on:
+      postgres:
+        condition: service_healthy
+  metrics:
+    container_name: metrics
+    build:
+      context: ./metrics
+      dockerfile: Dockerfile
+    image: metrics/latest
+    ports:
+      - 5003:7000
+    depends_on:
+      postgres:
+        condition: service_healthy
+  metabase:
+    container_name: metabase
+    image: metabase/metabase:latest
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./metabase:/metabase-data
+    environment:
+      - MB_DB_FILE=/metabase-data/metabase.db
+    depends_on:
+      postgres:
+        condition: service_healthy

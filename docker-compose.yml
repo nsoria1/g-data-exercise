@@ -43,3 +43,14 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+  metrics:
+    container_name: metrics
+    build:
+      context: ./metrics
+      dockerfile: Dockerfile
+    image: metrics/latest
+    ports:
+      - 5003:7000
+    depends_on:
+      postgres:
+        condition: service_healthy
